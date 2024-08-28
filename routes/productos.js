@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 
 // Crear un nuevo producto
 router.post('/', async (req, res) => {
-  const { nombre, tipo, descripcion, precio, categoria_id, material, peso, talla, imagen, disponibilidad } = req.body;
+  const { nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad } = req.body;
 
   // Validación básica
   if (!nombre || !tipo || !precio) {
@@ -22,8 +22,8 @@ router.post('/', async (req, res) => {
 
   try {
     const [result] = await req.db.query(
-      'INSERT INTO productos (nombre, tipo, descripcion, precio, categoria_id, material, peso, talla, imagen, disponibilidad) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [nombre, tipo, descripcion, precio, categoria_id, material, peso, talla, imagen, disponibilidad]
+      'INSERT INTO productos (nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad]
     );
     res.status(201).json({ id: result.insertId, ...req.body });
   } catch (err) {
@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 
 // Actualizar un producto por ID
 router.put('/:id', async (req, res) => {
-  const { nombre, tipo, descripcion, precio, categoria_id, material, peso, talla, imagen, disponibilidad } = req.body;
+  const { nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad } = req.body;
 
   // Validación básica
   if (!nombre || !tipo || !precio) {
@@ -55,8 +55,8 @@ router.put('/:id', async (req, res) => {
 
   try {
     const [result] = await req.db.query(
-      'UPDATE productos SET nombre = ?, tipo = ?, descripcion = ?, precio = ?, categoria_id = ?, material = ?, peso = ?, talla = ?, imagen = ?, disponibilidad = ? WHERE id = ?',
-      [nombre, tipo, descripcion, precio, categoria_id, material, peso, talla, imagen, disponibilidad, req.params.id]
+      'UPDATE productos SET nombre = ?, tipo = ?, descripcion = ?, precio = ?, categoria_id = ?, material = ?, color = ?, peso = ?, talla = ?, imagen = ?, disponibilidad = ? WHERE id = ?',
+      [nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad, req.params.id]
     );
 
     if (result.affectedRows === 0) {

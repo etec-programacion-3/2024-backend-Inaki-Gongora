@@ -9,10 +9,11 @@ POST http://localhost:3000/api/categorias
 Content-Type: application/json
 
 {
-  "nombre": "Anillos de lujo",
-  "descripcion": "Categoría de anillos"
+  "nombre": "Aros pequeños",
+  "descripcion": "Categoría de aros"
 }
 
+###
 
 ### Crear un nuevo producto
 POST http://localhost:3000/api/productos
@@ -25,6 +26,7 @@ Content-Type: application/json
   "precio": 299.99,
   "categoria_id": 1,
   "material": "Oro",
+  "color": "Dorado",
   "peso": 5,
   "talla": "10",
   "imagen": null,
@@ -40,7 +42,7 @@ Accept: application/json
 ###
 
 ### Actualizar un producto por ID
-PUT http://localhost:3000/api/productos/1
+PUT http://localhost:3000/api/productos/3
 Content-Type: application/json
 
 {
@@ -50,6 +52,7 @@ Content-Type: application/json
   "precio": 199.99,
   "categoria_id": 1,
   "material": "Plata",
+  "color": "Plateado",
   "peso": 7,
   "talla": "10",
   "imagen": null,

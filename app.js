@@ -44,3 +44,32 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
+
+
+
+
+function convertImageToBlob(imageUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg', 1);
+    };
+    img.onerror = reject;
+    img.src = imageUrl;
+  });
+}
+
+// convertImageToBlob('https://picsum.photos/1920/1080')
+// .then((blob) => {
+//   console.log(blob);
+// })
+// .catch((error) => {
+//   console.error(error);
+// });

@@ -1,0 +1,63 @@
+### Obtener todos los productos
+GET http://localhost:3000/api/productos
+Accept: application/json
+
+###
+
+### Crear una nueva categoría
+POST http://localhost:3000/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Anillos de lujo",
+  "descripcion": "Categoría de anillos"
+}
+
+
+### Crear un nuevo producto
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Anillo de Oro",
+  "tipo": "anillo",
+  "descripcion": "Anillo de oro puro 24K",
+  "precio": 299.99,
+  "categoria_id": 1,
+  "material": "Oro",
+  "peso": 5,
+  "talla": "10",
+  "imagen": null,
+  "disponibilidad": true
+}
+
+###
+
+### Obtener un producto por ID
+GET http://localhost:3000/api/productos/1
+Accept: application/json
+
+###
+
+### Actualizar un producto por ID
+PUT http://localhost:3000/api/productos/1
+Content-Type: application/json
+
+{
+  "nombre": "Anillo de Plata",
+  "tipo": "anillo",
+  "descripcion": "Anillo de plata con incrustaciones",
+  "precio": 199.99,
+  "categoria_id": 1,
+  "material": "Plata",
+  "peso": 7,
+  "talla": "10",
+  "imagen": null,
+  "disponibilidad": true
+}
+
+###
+
+### Eliminar un producto por ID
+DELETE http://localhost:3000/api/productos/1
+Accept: application/json

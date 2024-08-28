@@ -1,19 +1,25 @@
+require('dotenv').config();  // Cargar variables de entorno desde .env
 const express = require('express');
 const mysql = require('mysql2');
 const productoRoutes = require('./routes/productos');
+const categoriaRoutes = require('./routes/categorias');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;  // Usar el puerto de las variables de entorno o 3000 por defecto
 
 // Middleware para parsear JSON
 app.use(express.json());
 
-// Configuración de la base de datos
+// Configuración de la base de datos usando variables de entorno
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root', // Tu usuario de MySQL
-  password: '', // Tu contraseña de MySQL
-  database: 'ecommerce'
+  host: process.env.DB_HOST || 'localhost',  // Leer de las variables de entorno o usar valor por defecto
+  user: process.env.DB_USER || 'root',       // Leer de las variables de entorno o usar valor por defecto
+  password: process.env.DB_PASSWORD || '',   // Leer de las variables de entorno o usar valor por defecto
+  database: process.env.DB_NAME || 'ecommerce',  // Leer de las variables de entorno o usar valor por defecto
+  port: process.env.DB_PORT || 3306,         // Leer de las variables de entorno o usar valor por defecto
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // Promisify pool.query para usar async/await
@@ -27,6 +33,7 @@ app.use((req, res, next) => {
 
 // Usar las rutas de productos
 app.use('/api/productos', productoRoutes);
+app.use('/api/categorias', categoriaRoutes);
 
 // Ruta raíz para prueba
 app.get('/', (req, res) => {

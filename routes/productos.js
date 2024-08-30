@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
 
   try {
     const [result] = await req.db.query(
-      'INSERT INTO productos (nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO productos (nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad]
     );
     res.status(201).json({ id: result.insertId, ...req.body });

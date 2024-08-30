@@ -15,7 +15,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',  // Leer de las variables de entorno o usar valor por defecto
   user: process.env.DB_USER || 'root',       // Leer de las variables de entorno o usar valor por defecto
   password: process.env.DB_PASSWORD || '',   // Leer de las variables de entorno o usar valor por defecto
-  database: process.env.DB_NAME || 'ecommerce',  // Leer de las variables de entorno o usar valor por defecto
+  database: process.env.DB_NAME || 'zephyr',  // Leer de las variables de entorno o usar valor por defecto
   port: process.env.DB_PORT || 3306,         // Leer de las variables de entorno o usar valor por defecto
   waitForConnections: true,
   connectionLimit: 10,

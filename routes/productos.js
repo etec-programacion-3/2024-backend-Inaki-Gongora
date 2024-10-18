@@ -14,7 +14,6 @@ router.get('/', async (req, res) => {
 // Crear un nuevo producto
 router.post('/', async (req, res) => {
   const { nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad } = req.body;
-
   // Validación básica
   if (!nombre || !tipo || !precio) {
     return res.status(400).json({ message: 'Nombre, tipo y precio son requeridos' });

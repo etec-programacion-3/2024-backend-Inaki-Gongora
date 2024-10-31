@@ -3,6 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const productoRoutes = require('./routes/productos');
 const categoriaRoutes = require('./routes/categorias');
+const usuariosRoutes = require('./routes/usuarios')
 
 const app = express();
 const port = process.env.PORT || 3000;  // Usar el puerto de las variables de entorno o 3000 por defecto
@@ -34,6 +35,7 @@ app.use((req, res, next) => {
 // Usar las rutas de productos
 app.use('/api/productos', productoRoutes);
 app.use('/api/categorias', categoriaRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 // Ruta raíz para prueba
 app.get('/', (req, res) => {

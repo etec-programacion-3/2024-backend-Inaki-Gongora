@@ -32,8 +32,48 @@ Content-Type: application/json
   "imagen": null,
   "disponibilidad": true
 }
-
 ###
+
+### Ver todos los users
+GET http://localhost:3000/api/usuarios
+Content-Type: application/json
+###
+
+### Crear un nuevo usuario
+POST http://localhost:3000/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Iñaki Góngora",
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec",
+  "direccion": "Perito Moreno 220",
+  "telefono": 542612184210,
+  "rol": "admin"
+}
+###
+
+### Obtener un usuario por ID
+GET http://localhost:3000/api/usuarios/1
+Accept: application/json
+###
+
+### Actualizar un usuario 
+PUT http://localhost:3000/api/usuarios/1
+Content-Type: application/json
+
+{
+  "nombre": "Iñaki Góngora",
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec",
+  "direccion": "Perito Moreno 220",
+  "telefono": 542612184210,
+  "rol": "admin"
+}
+
+### Eliminar un producto por ID
+DELETE http://localhost:3000/api/usuarios/1
+Accept: application/json
 
 ### Obtener un producto por ID
 GET http://localhost:3000/api/productos/1

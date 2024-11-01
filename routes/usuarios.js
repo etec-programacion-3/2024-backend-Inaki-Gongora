@@ -3,6 +3,25 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 
+// Verificar si el email ya existe
+router.get('/check-email', async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email es requerido' });
+  }
+
+  try {
+    const [rows] = await req.db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    if (rows.length > 0) {
+      return res.status(409).json({ message: 'El email ya está en uso' });
+    }
+    return res.status(200).json({ message: 'Email disponible' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Error al verificar el email' });
+  }
+});
+
 // Crear un nuevo usuario
 router.post('/', async (req, res) => {
   const { nombre, email, contraseña, direccion, telefono, rol = 'user' } = req.body; // Asignar 'user' como rol predeterminado
@@ -12,6 +31,12 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    // Verificar si el email ya existe
+    const [existingUser] = await req.db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    if (existingUser.length > 0) {
+      return res.status(409).json({ message: 'El email ya está en uso' });
+    }
+
     const hashedPassword = await bcrypt.hash(contraseña, 10);
     const [result] = await req.db.query(
       'INSERT INTO usuarios (nombre, email, contraseña, direccion, telefono, rol) VALUES (?, ?, ?, ?, ?, ?)',

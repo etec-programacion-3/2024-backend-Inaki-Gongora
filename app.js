@@ -1,16 +1,19 @@
 require('dotenv').config();  // Cargar variables de entorno desde .env
 const express = require('express');
 const mysql = require('mysql2');
-const productoRoutes = require('./routes/productos');
-const categoriaRoutes = require('./routes/categorias');
-const usuariosRoutes = require('./routes/usuarios')
+const productoRoutes = require('./routes/productos.js');
+const categoriaRoutes = require('./routes/categorias.js');
+const usuariosRoutes = require('./routes/usuarios.js')
+const cors = require('cors');
+
+
 
 const app = express();
 const port = process.env.PORT || 3000;  // Usar el puerto de las variables de entorno o 3000 por defecto
 
 // Middleware para parsear JSON
 app.use(express.json());
-
+app.use(cors());
 // Configuración de la base de datos usando variables de entorno
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',  // Leer de las variables de entorno o usar valor por defecto
@@ -33,9 +36,10 @@ app.use((req, res, next) => {
 });
 
 // Usar las rutas de productos
-app.use('/api/productos', productoRoutes);
+
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/productos', productoRoutes);
 
 // Ruta raíz para prueba
 app.get('/', (req, res) => {

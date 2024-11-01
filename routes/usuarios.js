@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 
 // Crear un nuevo usuario
 router.post('/', async (req, res) => {
-  const { nombre, email, contraseña, direccion, telefono, rol } = req.body;
+  const { nombre, email, contraseña, direccion, telefono, rol = 'user' } = req.body; // Asignar 'user' como rol predeterminado
 
   if (!nombre || !email || !contraseña) {
     return res.status(400).json({ message: 'Nombre, email y contraseña son requeridos' });
@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     const hashedPassword = await bcrypt.hash(contraseña, 10);
     const [result] = await req.db.query(
       'INSERT INTO usuarios (nombre, email, contraseña, direccion, telefono, rol) VALUES (?, ?, ?, ?, ?, ?)',
-      [nombre, email, hashedPassword, direccion, telefono, rol]
+      [nombre, email, hashedPassword, direccion, telefono, rol] // Usar rol aquí
     );
 
     res.status(201).json({ id: result.insertId, nombre, email, direccion, telefono, rol });
@@ -33,7 +33,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 // Obtener un usuario por ID
 router.get('/:id', async (req, res) => {

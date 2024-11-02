@@ -3,7 +3,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const productoRoutes = require('./routes/productos.js');
 const categoriaRoutes = require('./routes/categorias.js');
-const usuariosRoutes = require('./routes/usuarios.js')
+const usuariosRoutes = require('./routes/usuarios.js');
 const cors = require('cors');
 
 

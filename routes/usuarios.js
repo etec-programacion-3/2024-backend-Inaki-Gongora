@@ -4,32 +4,49 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const secretKey = 'mondongo'
+const authMiddleware = require('../middleware/auth'); // Asegúrate de tener el middleware de autenticación
 
 // LOGIN
 // Ruta de inicio de sesión
 router.post('/login', async (req, res) => {
   const { email, contraseña } = req.body;
+  
+  console.log('Datos recibidos:', { email, contraseña });
 
   try {
-    // Buscar usuario por email
     const [rows] = await req.db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    
+    console.log('Resultados de la base de datos:', rows);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
     const user = rows[0];
-
-    // Comparar contraseñas
     const match = await bcrypt.compare(contraseña, user.contraseña);
+    
+    console.log('Contraseña coincidente:', match);
+
     if (!match) {
       return res.status(401).json({ message: 'Contraseña incorrecta' });
     }
 
-    // Generar token
     const token = jwt.sign({ id: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
-
     res.json({ message: 'Inicio de sesión exitoso', token });
+  } catch (err) {
+    console.error('Error en el controlador de inicio de sesión:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Ruta para obtener el perfil del usuario
+router.get('/perfil', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await req.db.query('SELECT nombre, email, telefono, direccion FROM usuarios WHERE id = ?', [req.user.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -104,3 +104,12 @@ Content-Type: application/json
 ### Eliminar un producto por ID
 DELETE http://localhost:3000/api/productos/1
 Accept: application/json
+
+### Login request
+POST http://localhost:3000/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec"
+}

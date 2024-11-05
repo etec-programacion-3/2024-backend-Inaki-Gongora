@@ -20,7 +20,7 @@ POST http://localhost:3000/api/productos
 Content-Type: application/json
 
 {
-  "nombre": "Anillo de Oro",
+  "nombre": "Aro de Plata",
   "tipo": "anillo",
   "descripcion": "Anillo de oro puro 24K",
   "precio": 299.99,
@@ -113,3 +113,7 @@ Content-Type: application/json
   "email": "i.gongora@alumno.etec.um.edu.ar",
   "contraseña": "47811476etec"
 }
+
+### Buscar por nombre
+GET http://localhost:3000/api/productos/?nombre=Anillo%20de%20Oro
+Content-Type: application/json

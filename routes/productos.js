@@ -1,10 +1,38 @@
 const express = require('express');
 const router = express.Router();
 
-// Obtener todos los productos
+// Obtener todos los productos o buscar productos por nombre y rango de precios
 router.get('/', async (req, res) => {
+  const { nombre, precioMinimo, precioMaximo } = req.query;
+
+  let query = 'SELECT * FROM productos WHERE 1=1'; // 1=1 es una manera de evitar errores al concatenar condiciones
+  const params = [];
+
+  if (nombre) {
+    query += ' AND nombre LIKE ?';
+    params.push(`%${nombre}%`); // Para buscar coincidencias en el nombre
+  }
+
+  if (precioMinimo) {
+    query += ' AND precio >= ?';
+    params.push(Number(precioMinimo)); // Asegúrate de que sea un número
+  }
+
+  if (precioMaximo) {
+    query += ' AND precio <= ?';
+    params.push(Number(precioMaximo)); // Asegúrate de que sea un número
+  }
+
+  console.log(query); // Para depurar
+  console.log(params); // Para depurar
+
   try {
-    const [rows] = await req.db.query('SELECT * FROM productos');
+    const [rows] = await req.db.query(query, params);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron productos que coincidan con los criterios de búsqueda.' });
+    }
+    
     res.json(rows);
   } catch (err) {
     res.status(500).json({ message: err.message });

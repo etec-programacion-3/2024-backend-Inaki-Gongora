@@ -1,9 +1,11 @@
+// app.js
 require('dotenv').config();  // Cargar variables de entorno desde .env
 const express = require('express');
 const mysql = require('mysql2');
 const productoRoutes = require('./routes/productos.js');
 const categoriaRoutes = require('./routes/categorias.js');
 const usuariosRoutes = require('./routes/usuarios.js');
+const path = require('path')
 const cors = require('cors');
 
 
@@ -41,6 +43,8 @@ app.use('/api/categorias', categoriaRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/productos', productoRoutes);
 
+console.log(path.join(__dirname, 'public')); // Muestra la ruta completa de la carpeta 'public'
+app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 // Ruta raíz para prueba
 app.get('/', (req, res) => {
   res.send('¡Hola desde el backend!');

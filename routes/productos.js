@@ -1,30 +1,25 @@
 const express = require('express');
 const router = express.Router();
 
+// Obtener todos los productos con filtros de búsqueda
 router.get('/', async (req, res) => {
-  console.log("Parámetros recibidos en req.query:", req.query); // Log para depuración
+  console.log("Parámetros recibidos en req.query:", req.query);
 
-  // Cambia 'precioMinimo' y 'precioMaximo' por 'minPrecio' y 'maxPrecio'
   const { nombre, minPrecio, maxPrecio } = req.query;
   
-  // Construimos la consulta, usando condiciones para precios, asegurando que siempre se usan
+  // Construimos la consulta SQL inicial
   let query = 'SELECT * FROM productos WHERE 1=1';
   const params = [];
 
-  // Agregar condición para el nombre
+  // Condición para filtrar por nombre
   if (nombre) {
     query += ' AND nombre LIKE ?';
-    params.push(`%${nombre}%`); // Para buscar coincidencias en el nombre
-  } else {
-    // Si no hay nombre, también podemos poner un valor por defecto para no romper la consulta
-    query += ' AND nombre IS NOT NULL'; // Esto podría incluir todos los nombres si no hay filtro
+    params.push(`%${nombre}%`);
   }
 
-  // Aseguramos que los parámetros de precio estén en la consulta
-  // Cambiamos 'precioMinimo' y 'precioMaximo' por 'minPrecio' y 'maxPrecio'
-  const precioMin = parseFloat(minPrecio) || 0; // Valor mínimo, en caso de que no se reciba
-  const precioMax = parseFloat(maxPrecio) || Number.MAX_VALUE; // Valor máximo, en caso de que no se reciba
-
+  // Condición para filtrar por rango de precios
+  const precioMin = parseFloat(minPrecio) || 0;
+  const precioMax = parseFloat(maxPrecio) || Number.MAX_VALUE;
   query += ' AND precio >= ? AND precio <= ?';
   params.push(precioMin, precioMax);
 
@@ -47,7 +42,6 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad } = req.body;
 
-  // Validación básica
   if (!nombre || !tipo || !precio) {
     return res.status(400).json({ message: 'Nombre, tipo y precio son requeridos' });
   }
@@ -80,7 +74,6 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { nombre, tipo, descripcion, precio, categoria_id, material, color, peso, talla, imagen, disponibilidad } = req.body;
 
-  // Validación básica
   if (!nombre || !tipo || !precio) {
     return res.status(400).json({ message: 'Nombre, tipo y precio son requeridos' });
   }

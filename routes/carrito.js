@@ -113,32 +113,37 @@ router.post('/producto', authMiddleware, async (req, res) => {
 });
 
 // Ruta para eliminar un producto del carrito
-router.delete('/producto/:productoId', authMiddleware, async (req, res) => {
-  const userId = req.user.id;
-  const { productoId } = req.params;  // Obtener el productoId desde los parámetros de la URL
-
-  console.log('productoId recibido en el backend:', productoId); // Agrega esta línea para ver el valor
+router.delete('/eliminar/:id', authMiddleware, async (req, res) => {
+  const userId = req.user.id; // Obtener ID del usuario autenticado
+  const { id } = req.params;  // Obtener el ID del producto a eliminar desde los parámetros de la URL
 
   try {
-    const [carrito] = await req.db.query('SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"', [userId]);
+    // Verificar si el usuario tiene un carrito activo
+    const [carrito] = await req.db.query(
+      'SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"',
+      [userId]
+    );
 
-    if (!carrito) {
+    if (!carrito || carrito.length === 0) {
       return res.status(404).json({ message: 'Carrito no encontrado' });
     }
 
+    const carritoId = carrito[0].id;
+
+    // Eliminar el producto del carrito usando el ID de la relación
     const result = await req.db.query(
-      'DELETE FROM carrito_productos WHERE carrito_id = ? AND producto_id = ?',
-      [carrito.id, productoId]  // Usamos el productoId recibido en la URL
+      'DELETE FROM carrito_productos WHERE carrito_id = ? AND id = ?',
+      [carritoId, id]
     );
 
-    if (result.affectedRows > 0) {
-      res.json({ message: 'Producto eliminado correctamente del carrito' });
+    if (result[0].affectedRows > 0) {
+      return res.json({ message: 'Producto eliminado del carrito' });
     } else {
-      res.status(404).json({ message: 'Producto no encontrado en el carrito' });
+      return res.status(404).json({ message: 'Producto no encontrado en el carrito' });
     }
   } catch (error) {
-    console.error('Error al eliminar producto del carrito:', error);
-    res.status(500).json({ message: 'Error al eliminar el producto del carrito' });
+    console.error('Error al eliminar el producto del carrito:', error);
+    return res.status(500).json({ message: 'Error interno al eliminar el producto' });
   }
 });
 

@@ -1,84 +1,201 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
+const authMiddleware = require('../middleware/auth');  // Middleware para verificar autenticación
 
-// Obtener todos los productos del carrito de un usuario
-router.get('/:user_id', async (req, res) => {
-  const { user_id } = req.params;
+// Función para crear un carrito si no existe para el usuario
+const crearCarritoSiNoExiste = async (userId, db) => {
+  console.log('Verificando carrito para el usuario con ID:', userId);
 
+  // Verificar si el usuario ya tiene un carrito activo
+  const [carrito] = await db.query(
+    'SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"',
+    [userId]
+  );
+
+  console.log('Carrito encontrado:', carrito);
+
+  // Si no existe, creamos uno
+  if (!carrito || carrito.length === 0) {
+    console.log('No se encontró carrito activo, creando uno nuevo...');
+    const carritoId = uuidv4();
+    console.log('Generando nuevo carrito_id:', carritoId);
+
+    try {
+      const result = await db.query(
+        'INSERT INTO carritos (usuario_id, id, estado) VALUES (?, ?, "activo")',
+        [userId, carritoId]
+      );
+      console.log('Resultado de la inserción en la base de datos:', result);
+      return carritoId;  // Asegúrate de devolver el carritoId generado
+    } catch (error) {
+      console.error('Error al crear el carrito:', error);
+      return null;
+    }
+  } else {
+    // Aquí accedemos correctamente al ID del carrito en el primer objeto del arreglo
+    console.log('Carrito ya existe con id:', carrito[0].id);
+    return carrito[0].id;  // Accedemos al 'id' del primer objeto
+  }
+};
+
+// Ruta para obtener el carrito y sus productos
+router.get('/carrito', authMiddleware, async (req, res) => {
+  const userId = req.user.id; // Obtenemos el ID del usuario autenticado
+  
   try {
-    const [rows] = await req.db.query(
-      'SELECT carrito.id, carrito.cantidad, productos.nombre, productos.precio FROM carrito ' +
-      'JOIN productos ON carrito.producto_id = productos.id WHERE carrito.user_id = ?',
-      [user_id]
+    // Primero buscamos el carrito del usuario
+    const [carritoResult] = await req.db.query(
+      'SELECT id FROM carritos WHERE usuario_id = ?',
+      [userId]
     );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ message: 'Carrito vacío' });
+    
+    // Si no existe el carrito, devolvemos un error
+    if (carritoResult.length === 0) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
     }
 
-    res.json(rows);
-  } catch (err) {
-    console.error('Error al obtener productos del carrito:', err);
-    res.status(500).json({ message: 'Error al obtener productos del carrito' });
+    const carritoId = carritoResult[0].id;
+
+    // Obtenemos los productos del carrito
+    const [productos] = await req.db.query(
+      `SELECT cp.id, p.nombre, p.precio, cp.cantidad
+      FROM carrito_productos cp
+      JOIN productos p ON cp.producto_id = p.id
+      WHERE cp.carrito_id = ?`,
+      [carritoId]
+    );
+
+    // Devolvemos los productos encontrados
+    res.json(productos);
+  } catch (error) {
+    console.error('Error al obtener productos del carrito:', error);
+    res.status(500).json({ message: 'Error interno al obtener productos del carrito' });
   }
 });
 
-// Agregar un producto al carrito de un usuario
-router.post('/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-  const { producto_id, cantidad } = req.body;
-
-  if (!producto_id || !cantidad) {
-    return res.status(400).json({ message: 'El producto y la cantidad son requeridos' });
-  }
+// Ruta para agregar un producto al carrito
+router.post('/producto', authMiddleware, async (req, res) => {
+  console.log("Se intentó meter el producto")
+  const userId = req.user.id;  // Asegurándonos de obtener el userId de la sesión
+  const { productId, cantidad } = req.body;
 
   try {
-    // Verificar si el producto ya está en el carrito
-    const [existingProduct] = await req.db.query(
-      'SELECT * FROM carrito WHERE user_id = ? AND producto_id = ?',
-      [user_id, producto_id]
-    );
+    // Asegurarnos de que el carrito existe o lo creamos si no existe
+    const carritoId = await crearCarritoSiNoExiste(userId, req.db);
 
-    if (existingProduct.length > 0) {
-      // Si el producto ya está en el carrito, solo actualizamos la cantidad
+    if (!carritoId) {
+      return res.status(500).json({ message: 'Error al crear o encontrar el carrito' });
+    }
+
+    // Si el carrito existe, obtenemos su ID
+    const [carrito] = await req.db.query('SELECT id FROM carritos WHERE id = ?', [carritoId]);
+
+    if (carrito) {
+      // Insertar o actualizar el producto en el carrito
       await req.db.query(
-        'UPDATE carrito SET cantidad = cantidad + ? WHERE user_id = ? AND producto_id = ?',
-        [cantidad, user_id, producto_id]
+        `INSERT INTO carrito_productos (carrito_id, producto_id, cantidad) 
+         VALUES (?, ?, ?) 
+         ON DUPLICATE KEY UPDATE cantidad = cantidad + ?`,
+        [carritoId, productId, cantidad, cantidad]  // Usamos carrito.id para la relación
       );
+      res.json({ message: 'Producto agregado al carrito' });
     } else {
-      // Si el producto no está en el carrito, lo agregamos
-      await req.db.query(
-        'INSERT INTO carrito (user_id, producto_id, cantidad) VALUES (?, ?, ?)',
-        [user_id, producto_id, cantidad]
-      );
+      res.status(404).json({ message: 'Carrito no encontrado' });
     }
-
-    res.status(201).json({ message: 'Producto agregado al carrito' });
-  } catch (err) {
-    console.error('Error al agregar producto al carrito:', err);
-    res.status(500).json({ message: 'Error al agregar producto al carrito' });
+  } catch (error) {
+    console.error('Error al agregar producto al carrito:', error);
+    res.status(500).json({ message: 'Error interno al agregar producto' });
   }
 });
 
-// Eliminar un producto del carrito de un usuario
-router.delete('/:user_id/:producto_id', async (req, res) => {
-  const { user_id, producto_id } = req.params;
+// Ruta para eliminar un producto del carrito
+router.delete('/producto', authMiddleware, async (req, res) => {
+  const userId = req.user.id;  // Asegurándonos de obtener el userId de la sesión
+  const { productId } = req.body;
 
   try {
-    const [result] = await req.db.query(
-      'DELETE FROM carrito WHERE user_id = ? AND producto_id = ?',
-      [user_id, producto_id]
-    );
+    // Verificamos si el usuario ya tiene un carrito
+    const [carrito] = await req.db.query('SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"', [userId]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Producto no encontrado en el carrito' });
+    if (carrito) {
+      // Eliminamos el producto del carrito
+      await req.db.query(
+        'DELETE FROM carrito_productos WHERE carrito_id = ? AND producto_id = ?',
+        [carrito.id, productId]  // Usamos carrito.id para la relación
+      );
+
+      res.json({ message: 'Producto eliminado del carrito' });
+    } else {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
     }
-
-    res.json({ message: 'Producto eliminado del carrito' });
-  } catch (err) {
-    console.error('Error al eliminar producto del carrito:', err);
-    res.status(500).json({ message: 'Error al eliminar producto del carrito' });
+  } catch (error) {
+    console.error('Error al eliminar producto del carrito:', error);
+    return res.status(500).json({ message: 'Error interno al eliminar producto' });
   }
 });
+
+// Ruta para actualizar la cantidad de un producto en el carrito
+router.put('/producto', authMiddleware, async (req, res) => {
+  const userId = req.user.id;  // Asegurándonos de obtener el userId de la sesión
+  const { productId, cantidad } = req.body;
+
+  try {
+    // Verificamos si el usuario ya tiene un carrito
+    const [carrito] = await req.db.query('SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"', [userId]);
+
+    if (carrito) {
+      // Actualizamos la cantidad del producto en el carrito
+      await req.db.query(
+        `UPDATE carrito_productos SET cantidad = ? 
+         WHERE carrito_id = ? AND producto_id = ?`,
+        [cantidad, carrito.id, productId]  // Usamos carrito.id para la relación
+      );
+
+      res.json({ message: 'Cantidad del producto actualizada' });
+    } else {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+  } catch (error) {
+    console.error('Error al actualizar la cantidad del producto:', error);
+    return res.status(500).json({ message: 'Error interno al actualizar producto' });
+  }
+});
+
+router.get('/', async (req, res) => {
+  const userId = req.session.userId; // Obtenemos el ID del usuario de la sesión
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Usuario no autenticado' });
+  }
+
+  try {
+    // 1. Buscar el carrito asociado al usuario
+    const [carrito] = await req.db.query('SELECT id FROM carritos WHERE usuario_id= ?', [userId]);
+
+    if (carrito.length === 0) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+
+    const carritoId = carrito[0].id;
+
+    // 2. Obtener los productos del carrito
+    const [productos] = await req.db.query(
+      `
+      SELECT cp.id, cp.cantidad, p.id AS producto_id, p.nombre, p.precio, p.imagen
+      FROM carrito_productos cp
+      INNER JOIN productos p ON cp.producto_id = p.id
+      WHERE cp.carrito_id = ?
+      `,
+      [carritoId]
+    );
+
+    res.json(productos); // Devolver los productos en el carrito
+  } catch (err) {
+    console.error('Error al obtener los productos del carrito:', err);
+    res.status(500).json({ message: 'Error al obtener el carrito' });
+  }
+});
+
 
 module.exports = router;

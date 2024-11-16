@@ -7,7 +7,6 @@ const secretKey = 'mondongo'
 const authMiddleware = require('../middleware/auth'); // Asegúrate de tener el middleware de autenticación
 
 // LOGIN
-// Ruta de inicio de sesión
 router.post('/login', async (req, res) => {
   const { email, contraseña } = req.body;
   
@@ -32,6 +31,10 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, email: user.email }, secretKey, { expiresIn: '1h' });
+    
+    // Aquí debes guardar el ID del usuario en la sesión correctamente
+    req.session.userId = user.id;  // Se usa `user.id` en lugar de `userId`
+
     res.json({ message: 'Inicio de sesión exitoso', token });
   } catch (err) {
     console.error('Error en el controlador de inicio de sesión:', err);

@@ -1,10 +1,47 @@
 // routes/usuarios.js
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const secretKey = 'mondongo'
+const secretKey = 'mondongo';
 const authMiddleware = require('../middleware/auth'); // Asegúrate de tener el middleware de autenticación
+
+const crearCarritoSiNoExiste = async (userId, db) => {
+  console.log('Verificando carrito para el usuario con ID:', userId);
+
+  try {
+    // Verificar si el usuario ya tiene un carrito activo
+    const [carrito] = await db.query(
+      'SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"',
+      [userId]
+    );
+
+    console.log('Carrito encontrado:', carrito);
+
+    // Si no existe, creamos uno
+    if (!carrito || carrito.length === 0) {
+      console.log('No se encontró carrito activo, creando uno nuevo...');
+      const carritoId = uuidv4();
+      console.log('Generando nuevo carrito_id:', carritoId);
+
+      // Crear el carrito para el usuario
+      const result = await db.query(
+        'INSERT INTO carritos (usuario_id, id, estado) VALUES (?, ?, "activo")',
+        [userId, carritoId]
+      );
+      console.log('Carrito creado con id:', carritoId);
+
+      return carritoId;  // Asegúrate de devolver el carritoId generado
+    } else {
+      console.log('Carrito ya existe con id:', carrito[0].id);
+      return carrito[0].id;  // Ya existe un carrito activo, lo devolvemos
+    }
+  } catch (error) {
+    console.error('Error al verificar o crear el carrito:', error);
+    return null;
+  }
+};
 
 // LOGIN
 router.post('/login', async (req, res) => {
@@ -75,30 +112,49 @@ router.get('/check-email', async (req, res) => {
   }
 });
 
-// Crear un nuevo usuario
+// Ruta para crear un nuevo usuario
 router.post('/', async (req, res) => {
-  const { nombre, email, contraseña, direccion, telefono, rol = 'user' } = req.body; // Asignar 'user' como rol predeterminado
+  const { nombre, email, contraseña, direccion, telefono, rol = 'user' } = req.body;
 
   if (!nombre || !email || !contraseña) {
     return res.status(400).json({ message: 'Nombre, email y contraseña son requeridos' });
   }
 
   try {
-    // Verificar si el email ya existe
+    // Verificar si el email ya existe en la base de datos
     const [existingUser] = await req.db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
     if (existingUser.length > 0) {
       return res.status(409).json({ message: 'El email ya está en uso' });
     }
 
+    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(contraseña, 10);
+
+    // Insertar el nuevo usuario en la base de datos
     const [result] = await req.db.query(
       'INSERT INTO usuarios (nombre, email, contraseña, direccion, telefono, rol) VALUES (?, ?, ?, ?, ?, ?)',
-      [nombre, email, hashedPassword, direccion, telefono, rol] // Usar rol aquí
+      [nombre, email, hashedPassword, direccion, telefono, rol]
     );
 
-    res.status(201).json({ id: result.insertId, nombre, email, direccion, telefono, rol });
+    // Crear un carrito para el nuevo usuario
+    const carritoId = await crearCarritoSiNoExiste(result.insertId, req.db);
+    if (!carritoId) {
+      return res.status(500).json({ message: 'Error al crear el carrito para el usuario' });
+    }
+
+    // Responder con los datos del usuario y el carritoId
+    res.status(201).json({
+      id: result.insertId,
+      nombre,
+      email,
+      direccion,
+      telefono,
+      rol,
+      carritoId
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error al crear el usuario:', err);
+    res.status(500).json({ message: 'Error al crear el usuario' });
   }
 });
 

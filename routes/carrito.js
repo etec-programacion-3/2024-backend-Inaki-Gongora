@@ -62,9 +62,9 @@ router.get('/carrito', authMiddleware, async (req, res) => {
 
     // Obtenemos los productos del carrito
     const [productos] = await req.db.query(
-      `SELECT cp.id, p.nombre, p.precio, cp.cantidad
+      `SELECT cp.id, cp.cantidad, p.id AS producto_id, p.nombre, p.precio, p.imagen
       FROM carrito_productos cp
-      JOIN productos p ON cp.producto_id = p.id
+      INNER JOIN productos p ON cp.producto_id = p.id
       WHERE cp.carrito_id = ?`,
       [carritoId]
     );
@@ -116,6 +116,7 @@ router.post('/producto', authMiddleware, async (req, res) => {
 router.delete('/eliminar/:id', authMiddleware, async (req, res) => {
   const userId = req.user.id; // Obtener ID del usuario autenticado
   const { id } = req.params;  // Obtener el ID del producto a eliminar desde los parámetros de la URL
+  console.log("ID del producto a eliminar:", id);  // Añadir este log
 
   try {
     // Verificar si el usuario tiene un carrito activo
@@ -199,6 +200,7 @@ router.get('/', async (req, res) => {
       INNER JOIN productos p ON cp.producto_id = p.id
       WHERE cp.carrito_id = ?
       `,
+
       [carritoId]
     );
 

@@ -211,5 +211,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Ruta para vaciar el carrito
+router.delete('/vaciar', authMiddleware, async (req, res) => {
+  const userId = req.user.id; // ID del usuario autenticado
+
+  try {
+    // Obtener el carrito activo del usuario
+    const [carritoResult] = await req.db.query(
+      'SELECT id FROM carritos WHERE usuario_id = ? AND estado = "activo"',
+      [userId]
+    );
+
+    if (carritoResult.length === 0) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+
+    const carritoId = carritoResult[0].id;
+
+    // Eliminar todos los productos del carrito
+    await req.db.query('DELETE FROM carrito_productos WHERE carrito_id = ?', [carritoId]);
+
+    res.status(200).json({ message: 'Carrito vaciado exitosamente' });
+  } catch (error) {
+    console.error('Error al vaciar el carrito:', error);
+    res.status(500).json({ message: 'Error interno al vaciar el carrito' });
+  }
+});
 
 module.exports = router;

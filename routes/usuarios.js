@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const secretKey = 'mondongo';
-const authMiddleware = require('../middleware/auth'); // Asegúrate de tener el middleware de autenticación
+const authMiddleware = require('../middleware/auth');
 
 const crearCarritoSiNoExiste = async (userId, db) => {
   console.log('Verificando carrito para el usuario con ID:', userId);
@@ -91,7 +91,6 @@ router.get('/perfil', authMiddleware, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 
 // Verificar si el email ya existe
 router.get('/check-email', async (req, res) => {

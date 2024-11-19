@@ -2,7 +2,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
-const authMiddleware = require('../middleware/auth');  // Middleware para verificar autenticación
+const authMiddleware = require('../middleware/auth');
 
 // Función para crear un carrito si no existe para el usuario
 const crearCarritoSiNoExiste = async (userId, db) => {
@@ -40,7 +40,6 @@ const crearCarritoSiNoExiste = async (userId, db) => {
     return null;
   }
 };
-
 
 // Ruta para obtener el carrito y sus productos
 router.get('/carrito', authMiddleware, async (req, res) => {

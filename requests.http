@@ -1,0 +1,123 @@
+### Obtener todos los productos
+GET http://localhost:3000/api/productos
+Accept: application/json
+
+###
+
+### Crear una nueva categoría
+POST http://localhost:3000/api/categorias
+Content-Type: application/json
+
+{
+  "nombre": "Aros pequeños",
+  "descripcion": "Categoría de aros"
+}
+
+###
+
+### Crear un nuevo producto
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+  "nombre": "Aro de Plata",
+  "tipo": "anillo",
+  "descripcion": "Anillo de oro puro 24K",
+  "precio": 299.99,
+  "categoria_id": 1,
+  "material": "Oro",
+  "color": "Dorado",
+  "peso": 5,
+  "talla": "10",
+  "imagen": null,
+  "disponibilidad": true
+}
+###
+
+### Ver todos los users
+GET http://localhost:3000/api/usuarios
+Content-Type: application/json
+###
+
+### Crear un nuevo usuario
+POST http://localhost:3000/api/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Iñaki Góngora",
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec",
+  "direccion": "Perito Moreno 220",
+  "telefono": 542612184210,
+  "rol": "admin"
+}
+###
+
+### Obtener un usuario por ID
+GET http://localhost:3000/api/usuarios/1
+Accept: application/json
+###
+
+### Actualizar un usuario 
+PUT http://localhost:3000/api/usuarios/1
+Content-Type: application/json
+
+{
+  "nombre": "Iñaki Góngora",
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec",
+  "direccion": "Perito Moreno 220",
+  "telefono": 542612184210,
+  "rol": "admin"
+}
+
+### Eliminar un producto por ID
+DELETE http://localhost:3000/api/usuarios/1
+Accept: application/json
+
+### Obtener un producto por ID
+GET http://localhost:3000/api/productos/1
+Accept: application/json
+
+###
+
+### Actualizar un producto por ID
+PUT http://localhost:3000/api/productos/3
+Content-Type: application/json
+
+{
+  "nombre": "Anillo de Plata",
+  "tipo": "anillo",
+  "descripcion": "Anillo de plata con incrustaciones",
+  "precio": 199.99,
+  "categoria_id": 1,
+  "material": "Plata",
+  "color": "Plateado",
+  "peso": 7,
+  "talla": "10",
+  "imagen": null,
+  "disponibilidad": true
+}
+
+###
+
+### Eliminar un producto por ID
+DELETE http://localhost:3000/api/productos/1
+Accept: application/json
+
+### Login request
+POST http://localhost:3000/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "i.gongora@alumno.etec.um.edu.ar",
+  "contraseña": "47811476etec"
+}
+
+### Buscar por nombre
+GET http://localhost:3000/api/productos/?nombre=Aro
+Content-Type: application/json
+
+### Buscar por nombre y precio
+GET http://localhost:3000/api/productos?nombre=anillo&minPrecio=867&maxPrecio=5000 HTTP/1.1
+Content-Type: application/json
